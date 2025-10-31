@@ -1,0 +1,5 @@
+# Ignoruj pliki systemowe macOS
+.DS_Store
+
+# Ignoruj katalog wyjściowy z kompilacji WebAssembly
+/pkg
