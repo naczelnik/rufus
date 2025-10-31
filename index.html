@@ -1,54 +1,122 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
     <title>Rufus - Analityka Marketingowa</title>
     <style>
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-        background-color: #121212;
-        color: #e0e0e0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        margin: 0;
-        text-align: center;
-      }
-      main {
-        padding: 2rem;
-        border-radius: 8px;
-        background-color: #1e1e1e;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      }
-      h1 {
-        color: #00bfa5;
-      }
-      p {
-        color: #b0b0b0;
-      }
-      button {
-        background-color: #00bfa5;
-        color: #121212;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 5px;
-        font-size: 16px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-      }
-      button:hover {
-        background-color: #00a08b;
-      }
+        :root {
+            --bg-color: #1a1a1a;
+            --card-bg-color: #2c2c2c;
+            --text-color: #fafafa;
+            --primary-color: #00ff99;
+            --secondary-text-color: #a0a0a0;
+            --border-radius: 8px;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        header p {
+            color: var(--secondary-text-color);
+            margin-top: 0.5rem;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 1200px;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background-color: var(--card-bg-color);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .metric-card h2 {
+            font-size: 1rem;
+            color: var(--secondary-text-color);
+            margin: 0 0 0.5rem 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .metric-card .value {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .actions {
+            text-align: center;
+        }
+
+        #generateReportButton {
+            background-color: var(--primary-color);
+            color: #000;
+            border: none;
+            padding: 0.8rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        #generateReportButton:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 255, 153, 0.2);
+        }
     </style>
-  </head>
-  <body>
-    <main>
-      <h1>Witaj w aplikacji Rufus!</h1>
-      <p>Aplikacja jest ładowana z WebAssembly...</p>
-      <button id="greetButton">Przywitaj się</button>
+</head>
+<body>
+    <header>
+        <h1>Dashboard Analityki Marketingowej</h1>
+        <p>Projekt Rufus - napędzany przez Rust i WebAssembly</p>
+    </header>
+
+    <main class="dashboard">
+        <div class="metric-card">
+            <h2>Odwiedziny</h2>
+            <p id="metric-visits" class="value">---</p>
+        </div>
+        <div class="metric-card">
+            <h2>Konwersja</h2>
+            <p id="metric-conversion" class="value">---</p>
+        </div>
+        <div class="metric-card">
+            <h2>Przychód</h2>
+            <p id="metric-revenue" class="value">---</p>
+        </div>
     </main>
-    <!-- Ten skrypt jest "klejem" między Rustem a HTML -->
-    <script src="./bootstrap.js"></script>
-  </body>
+
+    <div class="actions">
+        <button id="generateReportButton">Generuj Raport</button>
+    </div>
+
+    <script type="module" src="./bootstrap.js"></script>
+</body>
 </html>

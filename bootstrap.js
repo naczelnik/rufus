@@ -1,21 +1,45 @@
-// Czekamy na załadowanie modułu WASM, a następnie wykonujemy logikę
+// WAŻNE: Importujemy nie tylko funkcję `generate_report`, ale też `init`.
+// `init` to funkcja, która musi "odpalić" nasz silnik z Rusta.
+import init, { generate_report } from './pkg/rufus.js';
+
 async function run() {
   try {
-    // Importujemy funkcje z naszego Rusta. Ścieżka './pkg/rufus.js' zostanie
-    // wygenerowana automatycznie przez narzędzie wasm-pack podczas kompilacji na Cloudflare.
-    const { greet } = await import('./pkg/rufus.js');
+    // KROK 1: Inicjalizujemy moduł. To jest kluczowy, brakujący krok.
+    // Czekamy, aż przeglądarka załaduje i przygotuje nasz kod z Rusta.
+    await init();
+    console.log("Moduł Rufus (WASM) został pomyślnie załadowany i zainicjalizowany.");
 
-    const greetButton = document.getElementById('greetButton');
-    if (greetButton) {
-      greetButton.addEventListener('click', () => {
-        // Wywołujemy funkcję `greet` z Rusta!
-        const message = greet("Użytkowniku");
-        alert(message);
-      });
+    // Reszta kodu jest taka sama jak wcześniej...
+    const generateReportButton = document.getElementById('generateReportButton');
+    const visitsEl = document.getElementById('metric-visits');
+    const conversionEl = document.getElementById('metric-conversion');
+    const revenueEl = document.getElementById('metric-revenue');
+
+    const updateDashboardFromRust = () => {
+      const reportJsonString = generate_report();
+      const reportData = JSON.parse(reportJsonString);
+
+      if (visitsEl && conversionEl && revenueEl) {
+        visitsEl.textContent = reportData.visits.toLocaleString('pl-PL');
+        conversionEl.textContent = `${reportData.conversion_rate.toFixed(2)}%`;
+        revenueEl.textContent = reportData.revenue.toLocaleString('pl-PL', { 
+            style: 'currency', 
+            currency: 'PLN',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+      }
+    };
+    
+    // Generujemy pierwszy raport od razu po załadowaniu
+    if (generateReportButton) {
+      updateDashboardFromRust();
+      generateReportButton.addEventListener('click', updateDashboardFromRust);
     }
-    console.log("Moduł Rufus (WASM) załadowany pomyślnie.");
+
   } catch (error) {
-    console.error("Błąd podczas ładowania modułu WebAssembly:", error);
+    console.error("Błąd podczas ładowania lub inicjalizacji modułu WebAssembly:", error);
+    document.body.innerHTML = `<div style="color: red; text-align: center; padding-top: 50px;">Wystąpił krytyczny błąd. Nie można załadować modułu analitycznego (WASM). Sprawdź konsolę deweloperską.</div>`;
   }
 }
 

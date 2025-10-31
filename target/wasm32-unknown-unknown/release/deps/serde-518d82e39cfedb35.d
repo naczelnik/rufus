@@ -1,0 +1,14 @@
+/Users/artur/Desktop/Rufus/target/wasm32-unknown-unknown/release/deps/serde-518d82e39cfedb35.d: /Users/artur/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /Users/artur/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /Users/artur/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /Users/artur/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /Users/artur/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /Users/artur/Desktop/Rufus/target/wasm32-unknown-unknown/release/build/serde-857db925705f05b5/out/private.rs
+
+/Users/artur/Desktop/Rufus/target/wasm32-unknown-unknown/release/deps/libserde-518d82e39cfedb35.rlib: /Users/artur/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /Users/artur/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /Users/artur/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /Users/artur/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /Users/artur/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /Users/artur/Desktop/Rufus/target/wasm32-unknown-unknown/release/build/serde-857db925705f05b5/out/private.rs
+
+/Users/artur/Desktop/Rufus/target/wasm32-unknown-unknown/release/deps/libserde-518d82e39cfedb35.rmeta: /Users/artur/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /Users/artur/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /Users/artur/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /Users/artur/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /Users/artur/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /Users/artur/Desktop/Rufus/target/wasm32-unknown-unknown/release/build/serde-857db925705f05b5/out/private.rs
+
+/Users/artur/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs:
+/Users/artur/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs:
+/Users/artur/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs:
+/Users/artur/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:
+/Users/artur/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs:
+/Users/artur/Desktop/Rufus/target/wasm32-unknown-unknown/release/build/serde-857db925705f05b5/out/private.rs:
+
+# env-dep:OUT_DIR=/Users/artur/Desktop/Rufus/target/wasm32-unknown-unknown/release/build/serde-857db925705f05b5/out
