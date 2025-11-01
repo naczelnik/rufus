@@ -1,121 +1,379 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="pl" class="dark-theme">
 <head>
     <meta charset="UTF-8">
-    <title>Rufus - Analityka Marketingowa</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowPanel - Analityka Marketingowa</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
+    
+    <meta name="description" content="FlowPanel: Interfejs do wizualizacji i analizy danych marketingowych. Zbudowany w języku Rust z wykorzystaniem WebAssembly.">
+    
     <style>
         :root {
-            --bg-color: #1a1a1a;
-            --card-bg-color: #2c2c2c;
-            --text-color: #fafafa;
-            --primary-color: #00ff99;
-            --secondary-text-color: #a0a0a0;
+            --sidebar-width-expanded: 240px;
+            --sidebar-width-collapsed: 60px;
+            --header-height: 60px;
+            --transition-speed: 0.3s;
             --border-radius: 8px;
         }
 
+        /* --- Motywy Kolorystyczne --- */
+        .light-theme {
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --accent-color: #0d6efd;
+            --accent-color-hover: #0b5ed7;
+            --shadow-color: rgba(0, 0, 0, 0.05);
+            --icon-color: #495057;
+        }
+
+        .dark-theme {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --border-color: #333333;
+            --accent-color: #00ff99;
+            --accent-color-hover: #00e68a;
+            --shadow-color: rgba(0, 0, 0, 0.2);
+            --icon-color: #a0a0a0;
+        }
+        
+        html { box-sizing: border-box; }
+        *, *:before, *:after { box-sizing: inherit; }
+
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            padding: 2rem;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            display: grid;
+            grid-template-columns: var(--sidebar-width-collapsed) 1fr;
+            grid-template-rows: var(--header-height) 1fr;
+            height: 100vh;
+            transition: grid-template-columns var(--transition-speed) ease;
+        }
+
+        body.sidebar-expanded {
+            grid-template-columns: var(--sidebar-width-expanded) 1fr;
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            grid-row: 1 / 3;
+            grid-column: 1 / 2;
+            background-color: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 0.75rem 0;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
+            transition: width var(--transition-speed) ease;
+        }
+
+        .sidebar-header {
+            display: flex;
             align-items: center;
+            padding: 0 1.125rem;
+            min-height: 44px;
+            margin-bottom: 1rem;
+        }
+        
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            white-space: nowrap;
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease;
+        }
+        body.sidebar-expanded .sidebar-logo {
+           opacity: 1;
+           transform: translateX(0);
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 2rem;
+        .sidebar-nav { flex-grow: 1; }
+        .sidebar-nav ul { list-style: none; padding: 0; margin: 0; }
+        .sidebar-nav li { padding: 0 0.75rem; }
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            white-space: nowrap;
+            border-radius: var(--border-radius);
+            position: relative;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .sidebar-nav a:hover {
+            color: var(--text-primary);
+            background-color: var(--bg-primary);
+        }
+        .sidebar-nav a.active {
+            color: var(--text-primary);
+            background-color: var(--bg-primary);
+        }
+        .sidebar-nav a.active::before {
+            content: '';
+            position: absolute;
+            left: -0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 60%;
+            background-color: var(--accent-color);
+            border-radius: 0 3px 3px 0;
+        }
+        
+        .sidebar-nav .nav-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            margin-right: 1rem;
+            color: var(--icon-color);
+            transition: color 0.2s;
+        }
+        .sidebar-nav a:hover .nav-icon,
+        .sidebar-nav a.active .nav-icon {
+            color: var(--text-primary);
+        }
+        
+        .sidebar-nav .nav-text {
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease;
+        }
+        body.sidebar-expanded .sidebar-nav .nav-text {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .admin-section-divider {
+            margin: 1.5rem 1rem;
+            border: 0;
+            border-top: 1px solid var(--border-color);
+        }
+        .admin-section-header {
+            padding: 0 1.5rem; /* Dopasowane do paddingu li */
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+            opacity: 0;
+            transition: opacity var(--transition-speed) ease;
+        }
+        body.sidebar-expanded .admin-section-header {
+            opacity: 1;
         }
 
-        h1 {
-            color: var(--primary-color);
-            margin: 0;
+        /* --- Header --- */
+        .app-header {
+            grid-row: 1 / 2;
+            grid-column: 2 / 3;
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            justify-content: space-between;
         }
-
-        header p {
-            color: var(--secondary-text-color);
-            margin-top: 0.5rem;
+        
+        .header-controls { display: flex; align-items: center; gap: 0.5rem; }
+        .icon-btn {
+            background: none;
+            border: none;
+            color: var(--icon-color);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: var(--border-radius);
+            transition: background-color 0.2s, color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
+        .icon-btn:hover {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        .icon-btn svg { width: 24px; height: 24px; }
 
+        /* --- Main Content --- */
+        .main-content {
+            grid-row: 2 / 3;
+            grid-column: 2 / 3;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        .page { max-width: 1200px; margin: 0 auto; }
+        .page-header { margin-bottom: 2rem; }
+        .page-header h1 { font-size: 2rem; margin: 0; }
+        .page-header p { color: var(--text-secondary); margin-top: 0.5rem; }
+        
+        /* --- Style z poprzedniej wersji (dostosowane) --- */
         .dashboard {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 1.5rem;
-            width: 100%;
-            max-width: 1200px;
             margin-bottom: 2rem;
         }
-
-        .metric-card {
-            background-color: var(--card-bg-color);
+        .metric-card, .ai-report {
+            background-color: var(--bg-secondary);
             padding: 1.5rem;
             border-radius: var(--border-radius);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 12px var(--shadow-color);
             text-align: center;
         }
-
-        .metric-card h2 {
-            font-size: 1rem;
-            color: var(--secondary-text-color);
-            margin: 0 0 0.5rem 0;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .metric-card .value {
-            font-size: 2.5rem;
-            font-weight: 600;
-            color: var(--text-color);
-        }
-
-        .actions {
-            text-align: center;
-        }
-
+        .metric-card h2 { font-size: 1rem; color: var(--text-secondary); margin: 0 0 0.5rem 0; text-transform: uppercase; }
+        .metric-card .value { font-size: 2.5rem; font-weight: 600; color: var(--text-primary); }
         #generateReportButton {
-            background-color: var(--primary-color);
+            background-color: var(--accent-color);
             color: #000;
             border: none;
             padding: 0.8rem 2rem;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            font-size: 1rem; font-weight: 600; border-radius: var(--border-radius); cursor: pointer;
+            transition: all 0.2s ease;
         }
+        #generateReportButton:hover:not(:disabled) { background-color: var(--accent-color-hover); transform: translateY(-2px); }
+        .ai-report { text-align: left; }
+        .loader { border: 4px solid var(--border-color); border-top: 4px solid var(--accent-color); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 1rem auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        #generateReportButton:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0, 255, 153, 0.2);
-        }
     </style>
 </head>
-<body>
-    <header>
-        <h1>Dashboard Analityki Marketingowej</h1>
-        <p>Projekt Rufus - napędzany przez Rust i WebAssembly</p>
+<body class="sidebar-collapsed">
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <span class="sidebar-logo">FP</span>
+        </div>
+        <nav class="sidebar-nav">
+            <ul>
+                <li><a href="#" id="nav-dashboard" class="active">
+                    <span class="nav-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>
+                    </span>
+                    <span class="nav-text">Dashboard</span>
+                </a></li>
+                <li><a href="#" id="nav-settings">
+                    <span class="nav-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.44,0.17-0.48,0.41L9.2,5.07C8.61,5.31,8.08,5.62,7.59,6L5.2,5.04C4.98,4.96,4.73,5.04,4.61,5.25L2.69,8.57 c-0.11,0.2-0.06,0.47,0.12,0.61l2.03,1.58C4.8,11.36,4.78,11.68,4.78,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.26 C9.56,21.83,9.76,22,10,22h3.84c0.24,0,0.44-0.17,0.48-0.41l0.36-2.26c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.2,0.07-0.47-0.12-0.61L19.14,12.94z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </span>
+                    <span class="nav-text">Ustawienia</span>
+                </a></li>
+            </ul>
+            
+            <hr class="admin-section-divider">
+            <div class="admin-section-header">Super Admin</div>
+            
+            <ul>
+                 <li><a href="#" id="nav-admin-users">
+                    <span class="nav-icon">
+                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    </span>
+                    <span class="nav-text">Użytkownicy</span>
+                </a></li>
+                <li><a href="#" id="nav-admin-stats">
+                    <span class="nav-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    </span>
+                    <span class="nav-text">Statystyki Globalne</span>
+                </a></li>
+                <li><a href="#" id="nav-admin-system">
+                    <span class="nav-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                    </span>
+                    <span class="nav-text">Stan Systemu</span>
+                </a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <header class="app-header">
+        <button class="icon-btn" id="toggleSidebarBtn">
+            <svg id="icon-menu" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            <svg id="icon-close" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        <div class="header-controls">
+            <button class="icon-btn" id="themeToggleBtn">
+                <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </button>
+        </div>
     </header>
 
-    <main class="dashboard">
-        <div class="metric-card">
-            <h2>Odwiedziny</h2>
-            <p id="metric-visits" class="value">---</p>
-        </div>
-        <div class="metric-card">
-            <h2>Konwersja</h2>
-            <p id="metric-conversion" class="value">---</p>
-        </div>
-        <div class="metric-card">
-            <h2>Przychód</h2>
-            <p id="metric-revenue" class="value">---</p>
-        </div>
-    </main>
+    <main class="main-content">
 
-    <div class="actions">
-        <button id="generateReportButton">Generuj Raport</button>
-    </div>
+        <!-- STRONA GŁÓWNA - DASHBOARD -->
+        <div id="page-dashboard" class="page">
+            <div class="page-header">
+                <h1>Dashboard Analityki</h1>
+                <p>Projekt FlowPanel - napędzany przez Rust i WebAssembly</p>
+            </div>
+            <div class="dashboard">
+                <div class="metric-card">
+                    <h2>ODWIEDZINY</h2>
+                    <p id="metric-visits" class="value">---</p>
+                </div>
+                <div class="metric-card">
+                    <h2>KONWERSJA</h2>
+                    <p id="metric-conversion" class="value">---</p>
+                </div>
+                <div class="metric-card">
+                    <h2>PRZYCHÓD</h2>
+                    <p id="metric-revenue" class="value">---</p>
+                </div>
+            </div>
+            <div class="actions">
+                <button id="generateReportButton">Generuj Raport</button>
+            </div>
+            <div id="ai-report-container" class="ai-report" style="display: none; margin-top: 2rem;">
+                <h2>Analiza</h2>
+                <div id="ai-report-content"></div>
+            </div>
+        </div>
+
+        <!-- STRONA USTAWIEŃ -->
+        <div id="page-settings" class="page" style="display: none;">
+            <div class="page-header">
+                <h1>Ustawienia</h1>
+                <p>Zarządzaj ustawieniami swojego konta.</p>
+            </div>
+            <p>Ta strona jest w budowie.</p>
+        </div>
+
+        <!-- STRONY SUPER ADMINA -->
+        <div id="page-admin-users" class="page" style="display: none;">
+            <div class="page-header">
+                <h1>Zarządzanie Użytkownikami</h1>
+                <p>Przeglądaj, edytuj i zarządzaj kontami użytkowników.</p>
+            </div>
+            <p>Ta strona jest w budowie. Tutaj pojawi się lista użytkowników.</p>
+        </div>
+        
+        <div id="page-admin-stats" class="page" style="display: none;">
+            <div class="page-header">
+                <h1>Statystyki Globalne</h1>
+                <p>Agregowane dane ze wszystkich kont w systemie.</p>
+            </div>
+            <p>Ta strona jest w budowie. Tutaj pojawią się globalne metryki.</p>
+        </div>
+
+        <div id="page-admin-system" class="page" style="display: none;">
+            <div class="page-header">
+                <h1>Stan Systemu</h1>
+                <p>Monitoruj wydajność i status usług FlowPanel.</p>
+            </div>
+            <p>Ta strona jest w budowie. Tutaj pojawią się wskaźniki systemowe.</p>
+        </div>
+
+    </main>
 
     <script type="module" src="./bootstrap.js"></script>
 </body>
