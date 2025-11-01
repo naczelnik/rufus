@@ -1,3 +1,4 @@
+
 import { GoogleGenAI } from 'https://esm.run/@google/genai';
 import init, { generate_report } from './pkg/flowpanel.js';
 
@@ -13,6 +14,23 @@ async function run() {
     const pinSidebarBtn = document.getElementById('pinSidebarBtn');
     const themeToggleBtn = document.getElementById('themeToggleBtn');
     const pageTitle = document.getElementById('pageTitle');
+
+    // Funkcja do ustawiania stanu przypięcia
+    const setPinnedState = (isPinned) => {
+      body.classList.toggle('sidebar-pinned', isPinned);
+      pinSidebarBtn.classList.toggle('is-pinned', isPinned);
+      pinSidebarBtn.title = isPinned ? 'Odepnij pasek boczny' : 'Przypnij pasek boczny';
+      if (isPinned) {
+        body.classList.add('sidebar-expanded');
+        body.classList.remove('sidebar-collapsed');
+      }
+      localStorage.setItem('sidebarPinned', isPinned);
+    };
+
+    // Odczyt zapisanego stanu paska bocznego przy ładowaniu strony
+    if (localStorage.getItem('sidebarPinned') === 'true') {
+      setPinnedState(true);
+    }
 
     // Automatyczne rozwijanie/zwijanie paska bocznego i przypinanie
     if (sidebar && pinSidebarBtn) {
@@ -31,30 +49,15 @@ async function run() {
         });
 
         pinSidebarBtn.addEventListener('click', () => {
-            body.classList.toggle('sidebar-pinned');
-            const isPinned = body.classList.contains('sidebar-pinned');
-
-            if (isPinned) {
-                body.classList.add('sidebar-expanded');
-                body.classList.remove('sidebar-collapsed');
-            }
-            
-            pinSidebarBtn.title = isPinned ? 'Odepnij pasek boczny' : 'Przypnij pasek boczny';
-            pinSidebarBtn.innerHTML = isPinned ? '📌' : '📍';
+            const isCurrentlyPinned = body.classList.contains('sidebar-pinned');
+            setPinnedState(!isCurrentlyPinned);
         });
     }
 
     // Przełączanie motywu
     themeToggleBtn.addEventListener('click', () => {
-      if (body.classList.contains('dark-theme')) {
-        body.classList.remove('dark-theme');
-        body.classList.add('light-theme');
-        themeToggleBtn.textContent = '🌙';
-      } else {
-        body.classList.remove('light-theme');
-        body.classList.add('dark-theme');
-        themeToggleBtn.textContent = '☀️';
-      }
+      body.classList.toggle('dark-theme');
+      body.classList.toggle('light-theme');
     });
 
     // --- NAWIGACJA MIĘDZY STRONAMI (SPA) ---

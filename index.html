@@ -105,7 +105,8 @@
         .sidebar-nav a {
             display: flex;
             align-items: center;
-            padding: 0.8rem 1.15rem;
+            padding: 0.8rem 0;
+            padding-left: 1.15rem; /* Adjusted for centered icon */
             color: var(--text-secondary);
             text-decoration: none;
             white-space: nowrap;
@@ -117,10 +118,15 @@
             color: var(--text-primary);
         }
         .sidebar-nav .nav-icon {
-            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             min-width: 28px;
-            text-align: center;
             margin-right: 1rem;
+        }
+         .sidebar-nav .nav-icon svg {
+            width: 24px;
+            height: 24px;
         }
         .sidebar-nav .nav-text {
             opacity: 0;
@@ -177,19 +183,29 @@
             background: none;
             border: none;
             color: var(--text-secondary);
-            font-size: 1.5rem;
             cursor: pointer;
             padding: 0.5rem;
             border-radius: 5px;
-            transition: background-color 0.2s, color 0.2s, transform 0.2s;
-            line-height: 1; /* For better emoji alignment */
+            transition: background-color 0.2s, color 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
         }
+        .pin-sidebar-btn {
+            font-size: 1.5rem;
+            line-height: 1;
+            transition: background-color 0.2s, color 0.2s, transform 0.3s ease;
+        }
+        .theme-toggle-btn svg {
+            width: 24px;
+            height: 24px;
+        }
         .pin-sidebar-btn:hover, .theme-toggle-btn:hover {
             background-color: var(--bg-primary);
             color: var(--text-primary);
+        }
+        .pin-sidebar-btn.is-pinned:hover {
+             color: var(--accent-color-hover);
         }
 
         .pin-sidebar-btn {
@@ -207,6 +223,17 @@
             pointer-events: auto;
             transform: translateX(0) scale(1);
         }
+        
+        .pin-sidebar-btn.is-pinned {
+            color: var(--accent-color);
+            transform: rotate(-45deg);
+        }
+        body.sidebar-expanded .pin-sidebar-btn.is-pinned {
+             transform: translateX(0) scale(1) rotate(-45deg);
+        }
+        .light-theme .moon-icon { display: none; }
+        .dark-theme .sun-icon { display: none; }
+
 
         /* --- Main Content --- */
         .main-content {
@@ -269,21 +296,46 @@
     <aside class="sidebar">
         <div class="sidebar-header">
             <span class="sidebar-logo">FlowPanel</span>
-            <button class="pin-sidebar-btn" id="pinSidebarBtn" title="Przypnij pasek boczny">📍</button>
+            <button class="pin-sidebar-btn" id="pinSidebarBtn" title="Przypnij pasek boczny">📌</button>
         </div>
         <nav class="sidebar-nav">
             <ul>
-                <li><a href="#" id="nav-dashboard" class="active"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a></li>
-                <li><a href="#" id="nav-settings"><span class="nav-icon">⚙️</span><span class="nav-text">Ustawienia</span></a></li>
+                <li><a href="#" id="nav-dashboard" class="active">
+                    <span class="nav-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    </span>
+                    <span class="nav-text">Dashboard</span>
+                </a></li>
+                <li><a href="#" id="nav-settings">
+                    <span class="nav-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    </span>
+                    <span class="nav-text">Ustawienia</span>
+                </a></li>
             </ul>
             
             <hr class="admin-section-divider">
             <div class="admin-section-header">Super Admin</div>
             
             <ul>
-                <li><a href="#" id="nav-admin-users"><span class="nav-icon">👥</span><span class="nav-text">Użytkownicy</span></a></li>
-                <li><a href="#" id="nav-admin-stats"><span class="nav-icon">📈</span><span class="nav-text">Statystyki Globalne</span></a></li>
-                <li><a href="#" id="nav-admin-system"><span class="nav-icon">💻</span><span class="nav-text">Stan Systemu</span></a></li>
+                <li><a href="#" id="nav-admin-users">
+                    <span class="nav-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    </span>
+                    <span class="nav-text">Użytkownicy</span>
+                </a></li>
+                <li><a href="#" id="nav-admin-stats">
+                    <span class="nav-icon">
+                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    </span>
+                    <span class="nav-text">Statystyki Globalne</span>
+                </a></li>
+                <li><a href="#" id="nav-admin-system">
+                    <span class="nav-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2" ry="2"></rect><line x1="9" y1="2" x2="9" y2="22"></line><line x1="15" y1="2" x2="15" y2="22"></line><line x1="2" y1="9" x2="22" y2="9"></line><line x1="2" y1="15" x2="22" y2="15"></line></svg>
+                    </span>
+                    <span class="nav-text">Stan Systemu</span>
+                </a></li>
             </ul>
         </nav>
     </aside>
@@ -293,7 +345,10 @@
              <h1 id="pageTitle">Dashboard Analityki</h1>
         </div>
         <div class="header-right">
-            <button class="theme-toggle-btn" id="themeToggleBtn" title="Zmień motyw">☀️</button>
+            <button class="theme-toggle-btn" id="themeToggleBtn" title="Zmień motyw">
+                <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </button>
         </div>
     </header>
 
