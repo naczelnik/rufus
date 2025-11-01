@@ -1,99 +1,5 @@
+import { GoogleGenAI } from 'https://esm.run/@google/genai';
 import init, { generate_report } from './pkg/flowpanel.js';
-
-let revenueChartInstance = null; // Zmienna do przechowywania instancji wykresu
-
-// --- FUNKCJA RYSUJĄCA WYKRES ---
-const renderRevenueChart = (reportData) => {
-    const ctx = document.getElementById('revenueChart').getContext('2d');
-
-    // Symulacja danych historycznych dla wykresu
-    // W przyszłości te dane będą pochodzić z modułu Rust
-    const labels = ['Dzień 1', 'Dzień 2', 'Dzień 3', 'Dzień 4', 'Dzień 5', 'Dzień 6', 'Dzień 7'];
-    const revenueData = Array.from({length: 6}, () => Math.random() * reportData.revenue * 0.2);
-    revenueData.push(reportData.revenue); // Ostatni dzień to aktualny przychód
-    const costData = revenueData.map(r => r * (0.4 + Math.random() * 0.2)); // Koszt jako % przychodu
-
-    const chartConfig = {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Przychód',
-                data: revenueData,
-                backgroundColor: 'rgba(0, 255, 153, 0.1)',
-                borderColor: 'rgba(0, 255, 153, 1)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: 'rgba(0, 255, 153, 1)',
-                pointRadius: 4,
-            }, {
-                label: 'Koszt',
-                data: costData,
-                backgroundColor: 'rgba(176, 179, 184, 0.1)',
-                borderColor: 'rgba(176, 179, 184, 1)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: 'rgba(176, 179, 184, 1)',
-                pointRadius: 4,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.05)'
-                    },
-                    ticks: {
-                       callback: function(value) {
-                           return value.toLocaleString('pl-PL') + ' zł';
-                       }
-                    }
-                },
-                x: {
-                   grid: {
-                        display: false
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    position: 'top',
-                    align: 'end',
-                    labels: {
-                        boxWidth: 12,
-                        padding: 20
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (label) {
-                                label += ': ';
-                            }
-                            if (context.parsed.y !== null) {
-                                label += context.parsed.y.toLocaleString('pl-PL', { style: 'currency', currency: 'PLN' });
-                            }
-                            return label;
-                        }
-                    }
-                }
-            }
-        }
-    };
-    
-    if (revenueChartInstance) {
-        revenueChartInstance.destroy();
-    }
-    
-    revenueChartInstance = new Chart(ctx, chartConfig);
-};
-
 
 // --- GŁÓWNA FUNKCJA APLIKACJI ---
 async function run() {
@@ -101,63 +7,79 @@ async function run() {
     await init();
     console.log("Moduł FlowPanel (WASM) został pomyślnie załadowany.");
 
-    // --- LOGIKA NOWEGO LAYOUTU ---
+    // --- LOGIKA LAYOUTU I INTERAKCJI ---
     const body = document.body;
-    const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+    const sidebar = document.querySelector('.sidebar');
+    const pinSidebarBtn = document.getElementById('pinSidebarBtn');
     const themeToggleBtn = document.getElementById('themeToggleBtn');
-    const THEME_KEY = 'flowpanel-theme';
-    
-    const iconMenu = document.getElementById('icon-menu');
-    const iconClose = document.getElementById('icon-close');
-    const iconSun = document.getElementById('icon-sun');
-    const iconMoon = document.getElementById('icon-moon');
+    const pageTitle = document.getElementById('pageTitle');
 
-    // Przełączanie paska bocznego
-    toggleSidebarBtn.addEventListener('click', () => {
-      const isExpanded = body.classList.toggle('sidebar-expanded');
-      body.classList.toggle('sidebar-collapsed', !isExpanded);
-      iconMenu.style.display = isExpanded ? 'none' : 'block';
-      iconClose.style.display = isExpanded ? 'block' : 'none';
-    });
+    // Automatyczne rozwijanie/zwijanie paska bocznego i przypinanie
+    if (sidebar && pinSidebarBtn) {
+        sidebar.addEventListener('mouseenter', () => {
+            if (!body.classList.contains('sidebar-pinned')) {
+                body.classList.add('sidebar-expanded');
+                body.classList.remove('sidebar-collapsed');
+            }
+        });
 
-    // Funkcja do ustawiania motywu
-    const applyTheme = (theme) => {
-      body.classList.remove('dark-theme', 'light-theme');
-      body.classList.add(`${theme}-theme`);
-      
-      const isDark = theme === 'dark';
-      iconSun.style.display = isDark ? 'block' : 'none';
-      iconMoon.style.display = isDark ? 'none' : 'block';
-      
-      localStorage.setItem(THEME_KEY, theme);
-    };
+        sidebar.addEventListener('mouseleave', () => {
+            if (!body.classList.contains('sidebar-pinned')) {
+                body.classList.remove('sidebar-expanded');
+                body.classList.add('sidebar-collapsed');
+            }
+        });
+
+        pinSidebarBtn.addEventListener('click', () => {
+            body.classList.toggle('sidebar-pinned');
+            const isPinned = body.classList.contains('sidebar-pinned');
+
+            if (isPinned) {
+                body.classList.add('sidebar-expanded');
+                body.classList.remove('sidebar-collapsed');
+            }
+            
+            pinSidebarBtn.title = isPinned ? 'Odepnij pasek boczny' : 'Przypnij pasek boczny';
+            pinSidebarBtn.innerHTML = isPinned ? '📌' : '📍';
+        });
+    }
 
     // Przełączanie motywu
     themeToggleBtn.addEventListener('click', () => {
-      const currentTheme = localStorage.getItem(THEME_KEY) || 'dark';
-      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-      applyTheme(newTheme);
+      if (body.classList.contains('dark-theme')) {
+        body.classList.remove('dark-theme');
+        body.classList.add('light-theme');
+        themeToggleBtn.textContent = '🌙';
+      } else {
+        body.classList.remove('light-theme');
+        body.classList.add('dark-theme');
+        themeToggleBtn.textContent = '☀️';
+      }
     });
-    
-    const initUI = () => {
-        const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
-        applyTheme(savedTheme);
-        const isExpanded = body.classList.contains('sidebar-expanded');
-        iconMenu.style.display = isExpanded ? 'none' : 'block';
-        iconClose.style.display = isExpanded ? 'block' : 'none';
-    };
 
     // --- NAWIGACJA MIĘDZY STRONAMI (SPA) ---
     const navLinks = document.querySelectorAll('.sidebar-nav a');
     const pages = document.querySelectorAll('.page');
+
     const switchPage = (targetId) => {
+      // Deaktywuj wszystkie linki i ukryj wszystkie strony
       navLinks.forEach(link => link.classList.remove('active'));
       pages.forEach(page => page.style.display = 'none');
+
+      // Aktywuj kliknięty link i pokaż odpowiednią stronę
       const activeLink = document.getElementById(`nav-${targetId.replace('page-','')}`);
       const targetPage = document.getElementById(targetId);
+
       if (activeLink) activeLink.classList.add('active');
-      if (targetPage) targetPage.style.display = 'block';
+      if (targetPage) {
+        targetPage.style.display = 'block';
+        // Zaktualizuj tytuł w nagłówku
+        if (pageTitle && targetPage.dataset.title) {
+          pageTitle.textContent = targetPage.dataset.title;
+        }
+      }
     }
+
     navLinks.forEach(link => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
@@ -166,50 +88,69 @@ async function run() {
       });
     });
 
-    // --- LOGIKA NOWEGO DASHBOARDU ---
-    const refreshDataButton = document.getElementById('refreshDataButton');
+    // --- LOGIKA DASHBOARDU ---
+    const generateReportButton = document.getElementById('generateReportButton');
+    const visitsEl = document.getElementById('metric-visits');
     const conversionEl = document.getElementById('metric-conversion');
     const revenueEl = document.getElementById('metric-revenue');
+    const aiReportContainer = document.getElementById('ai-report-container');
+    const aiReportContent = document.getElementById('ai-report-content');
 
-    const generateAndAnalyze = async () => {
-      refreshDataButton.disabled = true;
-      refreshDataButton.textContent = 'Ładowanie...';
+    const generateAndAnalyze = () => {
+      generateReportButton.disabled = true;
+      generateReportButton.textContent = 'Generowanie...';
 
-      // Symulujemy opóźnienie, aby dać wrażenie ładowania
-      await new Promise(resolve => setTimeout(resolve, 500));
+      setTimeout(async () => {
+        try {
+          const reportJsonString = generate_report();
+          const reportData = JSON.parse(reportJsonString);
 
-      try {
-        const reportJsonString = generate_report();
-        const reportData = JSON.parse(reportJsonString);
+          visitsEl.textContent = reportData.visits.toLocaleString('pl-PL');
+          conversionEl.textContent = `${reportData.conversion_rate.toFixed(2)}%`;
+          revenueEl.textContent = reportData.revenue.toLocaleString('pl-PL', { 
+              style: 'currency', 
+              currency: 'PLN',
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+          });
 
-        // Aktualizacja metryk w widgecie
-        conversionEl.textContent = `${reportData.conversion_rate.toFixed(2)}%`;
-        revenueEl.textContent = reportData.revenue.toLocaleString('pl-PL', { 
-            style: 'currency', 
-            currency: 'PLN',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0
-        });
-        
-        // Renderowanie wykresu
-        renderRevenueChart(reportData);
+          aiReportContainer.style.display = 'block';
+          aiReportContent.innerHTML = '<div class="loader"></div>';
 
-      } catch (error) {
-        console.error("Błąd podczas generowania raportu:", error);
-        alert("Wystąpił błąd podczas generacji raportu. Spróbuj ponownie.");
-      } finally {
-        refreshDataButton.disabled = false;
-        refreshDataButton.textContent = 'Odśwież dane';
-      }
+          const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
+          const prompt = `Jesteś ekspertem od marketingu cyfrowego. Przeanalizuj poniższe dane z dashboardu i napisz zwięzły raport (maksymalnie 3-4 zdania) z kluczowymi wnioskami i praktycznymi poradami dla właściciela firmy w języku polskim. Użyj formatowania markdown (np. pogrubienie dla kluczowych metryk). Dane: Odwiedziny: ${reportData.visits}, Konwersja: ${reportData.conversion_rate.toFixed(2)}%, Przychód: ${reportData.revenue.toLocaleString('pl-PL', { style: 'currency', currency: 'PLN' })}.`;
+          
+          const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+          });
+
+          const aiText = response.text;
+          const formattedText = aiText
+              .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+              .replace(/\*(.*?)\*/g, '<em>$1</em>')
+              .replace(/(\r\n|\n|\r)/gm, '<br>');
+
+          aiReportContent.innerHTML = `<p>${formattedText}</p>`;
+
+        } catch (error) {
+          console.error("Błąd podczas generowania raportu lub analizy AI:", error);
+           if (aiReportContent) {
+            aiReportContent.innerHTML = `<p style="color: #ff9999;">Wystąpił błąd podczas generacji analizy AI. Spróbuj ponownie.</p>`;
+          }
+        } finally {
+          generateReportButton.disabled = false;
+          generateReportButton.textContent = 'Generuj Raport';
+        }
+      }, 50);
     };
     
-    if (refreshDataButton) {
-      generateAndAnalyze(); // Wygeneruj dane przy pierwszym załadowaniu
-      refreshDataButton.addEventListener('click', generateAndAnalyze);
+    if (generateReportButton) {
+      generateAndAnalyze();
+      generateReportButton.addEventListener('click', generateAndAnalyze);
     }
-    
-    // Inicjalizacja i ustawienie strony startowej
-    initUI();
+
+    // Ustawienie strony startowej
     switchPage('page-dashboard');
 
   } catch (error) {
