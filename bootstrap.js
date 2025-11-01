@@ -1,29 +1,97 @@
-
-
 import init, { generate_report } from './pkg/flowpanel.js';
 
-// --- FUNKCJA Z LOGIKĄ EKSPERCKĄ ---
-const getExpertAnalysis = (data) => {
-    let advice = [];
+let revenueChartInstance = null; // Zmienna do przechowywania instancji wykresu
+
+// --- FUNKCJA RYSUJĄCA WYKRES ---
+const renderRevenueChart = (reportData) => {
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+
+    // Symulacja danych historycznych dla wykresu
+    // W przyszłości te dane będą pochodzić z modułu Rust
+    const labels = ['Dzień 1', 'Dzień 2', 'Dzień 3', 'Dzień 4', 'Dzień 5', 'Dzień 6', 'Dzień 7'];
+    const revenueData = Array.from({length: 6}, () => Math.random() * reportData.revenue * 0.2);
+    revenueData.push(reportData.revenue); // Ostatni dzień to aktualny przychód
+    const costData = revenueData.map(r => r * (0.4 + Math.random() * 0.2)); // Koszt jako % przychodu
+
+    const chartConfig = {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Przychód',
+                data: revenueData,
+                backgroundColor: 'rgba(0, 255, 153, 0.1)',
+                borderColor: 'rgba(0, 255, 153, 1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: 'rgba(0, 255, 153, 1)',
+                pointRadius: 4,
+            }, {
+                label: 'Koszt',
+                data: costData,
+                backgroundColor: 'rgba(176, 179, 184, 0.1)',
+                borderColor: 'rgba(176, 179, 184, 1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: 'rgba(176, 179, 184, 1)',
+                pointRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.05)'
+                    },
+                    ticks: {
+                       callback: function(value) {
+                           return value.toLocaleString('pl-PL') + ' zł';
+                       }
+                    }
+                },
+                x: {
+                   grid: {
+                        display: false
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    align: 'end',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += context.parsed.y.toLocaleString('pl-PL', { style: 'currency', currency: 'PLN' });
+                            }
+                            return label;
+                        }
+                    }
+                }
+            }
+        }
+    };
     
-    // Reguła dla konwersji
-    if (data.conversion_rate < 1.0) {
-        advice.push("<strong>Niska konwersja:</strong> Wartość poniżej 1% sugeruje, że strona docelowa lub oferta mogą wymagać optymalizacji. Przetestuj nagłówki, wezwania do działania (CTA) i czytelność oferty.");
-    } else if (data.conversion_rate > 3.0) {
-        advice.push("<strong>Świetna konwersja!</strong> Wynik powyżej 3% jest bardzo dobry. Rozważ zwiększenie ruchu na stronie (np. przez reklamy), aby w pełni wykorzystać jej potencjał.");
+    if (revenueChartInstance) {
+        revenueChartInstance.destroy();
     }
-
-    // Reguła dla przychodu w stosunku do ruchu
-    if (data.revenue < 1000 && data.visits > 2000) {
-        advice.push("<strong>Niski przychód przy dużym ruchu:</strong> Mimo wielu odwiedzin, przychód jest niski. Przeanalizuj ofertę lub model cenowy. Możliwe, że ruch pochodzi ze źródeł, które nie generują wartościowych klientów.");
-    }
-
-    // Domyślna porada, jeśli żadna inna nie pasuje
-    if (advice.length === 0) {
-        advice.push("<strong>Stabilne wyniki:</strong> Metryki są w normie. Kontynuuj monitorowanie i szukaj okazji do optymalizacji poszczególnych kampanii marketingowych.");
-    }
-
-    return advice.map(item => `<p>${item}</p>`).join('');
+    
+    revenueChartInstance = new Chart(ctx, chartConfig);
 };
 
 
@@ -71,36 +139,25 @@ async function run() {
       applyTheme(newTheme);
     });
     
-    // Inicjalizacja stanu UI przy starcie
     const initUI = () => {
-        // Ustawienie motywu
         const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
         applyTheme(savedTheme);
-
-        // Ustawienie paska bocznego
         const isExpanded = body.classList.contains('sidebar-expanded');
         iconMenu.style.display = isExpanded ? 'none' : 'block';
         iconClose.style.display = isExpanded ? 'block' : 'none';
     };
 
-
     // --- NAWIGACJA MIĘDZY STRONAMI (SPA) ---
     const navLinks = document.querySelectorAll('.sidebar-nav a');
     const pages = document.querySelectorAll('.page');
-
     const switchPage = (targetId) => {
-      // Deaktywuj wszystkie linki i ukryj wszystkie strony
       navLinks.forEach(link => link.classList.remove('active'));
       pages.forEach(page => page.style.display = 'none');
-
-      // Aktywuj kliknięty link i pokaż odpowiednią stronę
       const activeLink = document.getElementById(`nav-${targetId.replace('page-','')}`);
       const targetPage = document.getElementById(targetId);
-
       if (activeLink) activeLink.classList.add('active');
       if (targetPage) targetPage.style.display = 'block';
     }
-
     navLinks.forEach(link => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
@@ -109,53 +166,46 @@ async function run() {
       });
     });
 
-    // --- LOGIKA DASHBOARDU (PRZENIESIONA Z POPRZEDNIEJ WERSJI) ---
-    const generateReportButton = document.getElementById('generateReportButton');
-    const visitsEl = document.getElementById('metric-visits');
+    // --- LOGIKA NOWEGO DASHBOARDU ---
+    const refreshDataButton = document.getElementById('refreshDataButton');
     const conversionEl = document.getElementById('metric-conversion');
     const revenueEl = document.getElementById('metric-revenue');
-    const aiReportContainer = document.getElementById('ai-report-container');
-    const aiReportContent = document.getElementById('ai-report-content');
 
-    const generateAndAnalyze = () => {
-      generateReportButton.disabled = true;
-      generateReportButton.textContent = 'Generowanie...';
+    const generateAndAnalyze = async () => {
+      refreshDataButton.disabled = true;
+      refreshDataButton.textContent = 'Ładowanie...';
 
-      // Używamy setTimeout, aby dać przeglądarce chwilę na odświeżenie UI (zmiana tekstu przycisku)
-      setTimeout(() => {
-        try {
-          const reportJsonString = generate_report();
-          const reportData = JSON.parse(reportJsonString);
+      // Symulujemy opóźnienie, aby dać wrażenie ładowania
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-          visitsEl.textContent = reportData.visits.toLocaleString('pl-PL');
-          conversionEl.textContent = `${reportData.conversion_rate.toFixed(2)}%`;
-          revenueEl.textContent = reportData.revenue.toLocaleString('pl-PL', { 
-              style: 'currency', 
-              currency: 'PLN',
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2
-          });
-          
-          // Generowanie analizy przez lokalną logikę
-          const expertAdvice = getExpertAnalysis(reportData);
-          aiReportContent.innerHTML = expertAdvice;
-          aiReportContainer.style.display = 'block';
+      try {
+        const reportJsonString = generate_report();
+        const reportData = JSON.parse(reportJsonString);
 
-        } catch (error) {
-          console.error("Błąd podczas generowania raportu:", error);
-           if (aiReportContent) {
-            aiReportContent.innerHTML = `<p style="color: #ff9999;">Wystąpił błąd podczas generacji raportu. Spróbuj ponownie.</p>`;
-           }
-        } finally {
-          generateReportButton.disabled = false;
-          generateReportButton.textContent = 'Generuj Raport';
-        }
-      }, 50);
+        // Aktualizacja metryk w widgecie
+        conversionEl.textContent = `${reportData.conversion_rate.toFixed(2)}%`;
+        revenueEl.textContent = reportData.revenue.toLocaleString('pl-PL', { 
+            style: 'currency', 
+            currency: 'PLN',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        });
+        
+        // Renderowanie wykresu
+        renderRevenueChart(reportData);
+
+      } catch (error) {
+        console.error("Błąd podczas generowania raportu:", error);
+        alert("Wystąpił błąd podczas generacji raportu. Spróbuj ponownie.");
+      } finally {
+        refreshDataButton.disabled = false;
+        refreshDataButton.textContent = 'Odśwież dane';
+      }
     };
     
-    if (generateReportButton) {
-      generateAndAnalyze();
-      generateReportButton.addEventListener('click', generateAndAnalyze);
+    if (refreshDataButton) {
+      generateAndAnalyze(); // Wygeneruj dane przy pierwszym załadowaniu
+      refreshDataButton.addEventListener('click', generateAndAnalyze);
     }
     
     // Inicjalizacja i ustawienie strony startowej
