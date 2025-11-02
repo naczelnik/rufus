@@ -1,5 +1,14 @@
+
+# .gitignore
 # Ignoruj pliki systemowe macOS
 .DS_Store
 
 # Ignoruj katalog wyjściowy z kompilacji WebAssembly
 /pkg
+
+# Ignoruj katalog budowania Rusta
+/target
+
+# --- BARDZO WAŻNE: Ochrona kluczy API ---
+# Nigdy nie wysyłaj tego pliku na GitHuba.
+src/api/supabaseClient.js
